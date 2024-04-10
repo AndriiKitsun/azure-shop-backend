@@ -9,7 +9,7 @@
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",
     "start": "func start",
-    "deploy": "func azure functionapp publish fa-products-service-ne-ak001"
+    "deploy": "npm run prestart && func azure functionapp publish fa-products-service-ne-ak001"
   },
   "dependencies": {
     "@azure/functions": "^4.0.0"
