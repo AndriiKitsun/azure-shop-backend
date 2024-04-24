@@ -6,9 +6,7 @@ export async function getProductList(request: HttpRequest, context: InvocationCo
 
     const productList = await getProducts();
 
-    return {
-        jsonBody: productList
-    };
+    return { jsonBody: productList };
 }
 
 app.get('http-get-product-list', {
