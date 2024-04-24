@@ -1,13 +1,13 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { productListMock } from "../mocks/product.mocks";
 import { constants } from "node:http2"
 import { randomUUID } from "node:crypto";
+import { getProduct } from "../services/product/product.service";
 
 export async function getProductById(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
     const productId = request.params.productId;
-    const product = productListMock.find(product => product.id === productId);
+    const product = await getProduct(productId);
 
     if (!product) {
         return {
