@@ -4,6 +4,7 @@ import { errorResponse, errorValidationResponse } from "../services/error/error.
 import { CreateProductDto } from "../dto/create-product.dto";
 import { validateDto } from "../services/dto/dto.service";
 import { createProduct } from "../services/product/product.service";
+import { HttpErrorType } from "../services/error/error-service.types";
 
 export async function createProductHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
@@ -11,6 +12,7 @@ export async function createProductHandler(request: HttpRequest, context: Invoca
     if (!request.body) {
         return errorResponse({
             status: constants.HTTP_STATUS_BAD_REQUEST,
+            type: HttpErrorType.VALIDATION_ERROR,
             message: "Input body can't be empty"
         })
     }

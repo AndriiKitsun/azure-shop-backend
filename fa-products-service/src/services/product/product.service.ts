@@ -17,7 +17,7 @@ const database = cosmosClient.database(databaseName);
 const productContainer = database.container(productContainerName);
 const stockContainer = database.container(stockContainerName);
 
-export async function getProducts(): Promise<Product[]> {
+export async function getProductList(): Promise<Product[]> {
     const productResponse = await productContainer.items.readAll().fetchAll();
     const stockResponse = await stockContainer.items.readAll().fetchAll();
 
@@ -37,7 +37,7 @@ export async function getProducts(): Promise<Product[]> {
     });
 }
 
-export async function getProduct(productId: string): Promise<Product | null> {
+export async function getProductById(productId: string): Promise<Product | null> {
     const productResponse = await productContainer.item(productId, productId).read();
     const product = productResponse.resource as ProductDefinition;
 

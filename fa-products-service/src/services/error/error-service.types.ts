@@ -1,6 +1,7 @@
 export interface HttpErrorArgs {
     status: number;
-    message: string
+    message: string;
+    type?: HttpErrorType;
 }
 
 export enum HttpErrorType {

@@ -10,7 +10,7 @@ export function errorResponse(error: HttpErrorArgs): HttpResponseInit {
         timestamp: new Date().toJSON(),
         errors: [
             {
-                type: HttpErrorType.UNKNOWN_ERROR,
+                type: error.type ?? HttpErrorType.UNKNOWN_ERROR,
                 message: error.message
             }
         ]

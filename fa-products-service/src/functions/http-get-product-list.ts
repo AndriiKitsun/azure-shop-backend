@@ -1,10 +1,10 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getProducts } from "../services/product/product.service";
+import { getProductList } from "../services/product/product.service";
 
-export async function getProductList(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function getProductListHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
-    const productList = await getProducts();
+    const productList = await getProductList();
 
     return { jsonBody: productList };
 }
@@ -12,6 +12,6 @@ export async function getProductList(request: HttpRequest, context: InvocationCo
 app.get('http-get-product-list', {
     authLevel: 'anonymous',
     route: 'products',
-    handler: getProductList
+    handler: getProductListHandler
 });
 
