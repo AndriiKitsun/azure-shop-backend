@@ -1,12 +1,21 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { constants } from "node:http2"
 import { errorResponse } from "../services/error/error.service";
-import { getProductById } from "../services/product/product.service";
+import { getProductById, getProductList } from "../services/product/product.service";
 
 export async function getProductByIdHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
     const productId = request.params.productId;
+
+    if (productId === 'total') {
+        const productList = await getProductList();
+        const productsInStock = productList.filter(product => product.count);
+
+        return { jsonBody: productsInStock }
+    }
+
+
     const product = await getProductById(productId);
 
     if (!product) {
