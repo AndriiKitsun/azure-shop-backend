@@ -1,25 +1,47 @@
-import { CosmosClient, SqlQuerySpec } from "@azure/cosmos";
+import { CosmosClient, SqlQuerySpec, Container } from "@azure/cosmos";
 import { Product } from "../../types/product.types";
 import { StockDefinition, ProductDefinition } from "./product-service.types";
 import { CreateProductDto } from "../../dto/create-product.dto";
 import { randomUUID } from "node:crypto";
-
-const key = process.env.COSMOS_KEY!;
-const endpoint = process.env.COSMOS_ENDPOINT!;
+import { getAppSetting } from "../app-config.service";
 
 const databaseName = `products-db`;
 const productContainerName = `products`;
 const stockContainerName = `stocks`;
 
-const cosmosClient = new CosmosClient({ endpoint, key });
+let cosmosKey: string;
+let cosmosEndpoint: string;
+let cosmosClient: CosmosClient;
 
-const database = cosmosClient.database(databaseName);
-const productContainer = database.container(productContainerName);
-const stockContainer = database.container(stockContainerName);
+async function getCosmosClient(): Promise<CosmosClient> {
+    const key = await getAppSetting("COSMOS_KEY");
+    const endpoint = await getAppSetting('COSMOS_ENDPOINT');
+
+    if (key !== cosmosKey || endpoint !== cosmosEndpoint || !cosmosClient) {
+        cosmosClient?.dispose();
+        cosmosClient = new CosmosClient({ endpoint, key });
+        cosmosKey = key;
+        cosmosEndpoint = endpoint;
+    }
+
+    return cosmosClient;
+}
+
+async function getProductContainer(): Promise<Container> {
+    const client = await getCosmosClient();
+
+    return client.database(databaseName).container(productContainerName)
+}
+
+async function getStockContainer(): Promise<Container> {
+    const client = await getCosmosClient();
+
+    return client.database(databaseName).container(stockContainerName);
+}
 
 export async function getProductList(): Promise<Product[]> {
-    const productResponse = await productContainer.items.readAll().fetchAll();
-    const stockResponse = await stockContainer.items.readAll().fetchAll();
+    const productResponse = await (await getProductContainer()).items.readAll().fetchAll();
+    const stockResponse = await (await getStockContainer()).items.readAll().fetchAll();
 
     const products = productResponse.resources as ProductDefinition[];
     const stocks = stockResponse.resources as StockDefinition[];
@@ -38,7 +60,7 @@ export async function getProductList(): Promise<Product[]> {
 }
 
 export async function getProductById(productId: string): Promise<Product | null> {
-    const productResponse = await productContainer.item(productId, productId).read();
+    const productResponse = await (await getProductContainer()).item(productId, productId).read();
     const product = productResponse.resource as ProductDefinition;
 
     if (!product) {
@@ -55,7 +77,7 @@ export async function getProductById(productId: string): Promise<Product | null>
         ]
     }
 
-    const stockResponse = await stockContainer.items.query(stockQuery).fetchAll()
+    const stockResponse = await (await getStockContainer()).items.query(stockQuery).fetchAll()
     const stocks = stockResponse.resources as StockDefinition[];
 
     return {
@@ -75,10 +97,10 @@ export async function createProduct(productDto: CreateProductDto): Promise<Produ
         price: productDto.price
     };
 
-    await productContainer.items.create<ProductDefinition>(productDef);
+    await (await getProductContainer()).items.create<ProductDefinition>(productDef);
 
     if (productDto.count) {
-        await stockContainer.items.create<StockDefinition>({
+        await (await getStockContainer()).items.create<StockDefinition>({
             id: randomUUID(),
             product_id: productDef.id,
             count: productDto.count
