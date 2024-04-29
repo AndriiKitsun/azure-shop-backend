@@ -1,17 +1,17 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { productListMock } from "../mocks/product.mocks";
+import { getProductList } from "../services/product/product.service";
 
-export async function getProductList(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function getProductListHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
-    return {
-        jsonBody: productListMock
-    };
+    const productList = await getProductList();
+
+    return { jsonBody: productList };
 }
 
 app.get('http-get-product-list', {
     authLevel: 'anonymous',
     route: 'products',
-    handler: getProductList
+    handler: getProductListHandler
 });
 

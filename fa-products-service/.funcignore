@@ -4,6 +4,7 @@
 .vscode
 local.settings.json
 src
+scripts
 test
 getting_started.md
 node_modules/@types/
