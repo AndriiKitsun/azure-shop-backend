@@ -199,6 +199,16 @@ resource "azurerm_storage_account" "import_service_fa" {
   account_tier             = "Standard"
   account_kind             = "StorageV2"
 
+  blob_properties {
+    cors_rule {
+      allowed_headers    = ["*"]
+      allowed_methods    = ["GET", "PUT"]
+      allowed_origins    = ["*"]
+      exposed_headers    = ["*"]
+      max_age_in_seconds = 0
+    }
+  }
+
   resource_group_name = azurerm_resource_group.import_service_rg.name
 }
 
@@ -261,7 +271,7 @@ resource "azurerm_windows_function_app" "import_service" {
     }
 
     application_stack {
-      node_version = "~20"
+      node_version = "~18"
     }
   }
 
