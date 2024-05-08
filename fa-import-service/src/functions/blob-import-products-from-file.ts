@@ -16,8 +16,8 @@ export async function importProductsFromFileHandler(blob: Buffer, context: Invoc
     }) as any[];
 
     data.forEach((product, i) => {
-        context.log(`Imported product item #${i + 1}: ${JSON.stringify(product)}`)
-    })
+        context.log(`Imported product item #${i + 1}: ${JSON.stringify(product)}`);
+    });
 
     await moveParsedFile(blob, blobName);
 }

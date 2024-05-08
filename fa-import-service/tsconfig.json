@@ -8,5 +8,9 @@
     "removeComments": true,
     "strict": true,
     "strictNullChecks": false
-  }
+  },
+  "exclude": [
+    "test",
+    "jest.config.ts"
+  ]
 }

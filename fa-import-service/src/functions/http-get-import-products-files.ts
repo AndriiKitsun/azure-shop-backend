@@ -23,7 +23,7 @@ export async function getImportProductsFilesHandler(request: HttpRequest, contex
     return { jsonBody: sasToken };
 }
 
-function getSasToken(blobName: string): unknown {
+function getSasToken(blobName: string): string {
     const startsOn = new Date();
     const expiresOn = new Date(startsOn.valueOf() + 10 * 60_000);
 
