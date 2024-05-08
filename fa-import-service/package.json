@@ -6,13 +6,14 @@
   "scripts": {
     "build": "rimraf dist && tsc",
     "watch": "tsc -w",
-    "azurite": "azurite-blob -s -l ./azurite",
+    "azurite": "azurite-blob -l ./azurite",
     "start": "npm run build && func start",
     "deploy": "sh scripts/deploy.sh"
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
-    "@azure/storage-blob": "^12.17.0"
+    "@azure/storage-blob": "^12.17.0",
+    "csv-parse": "^5.5.5"
   },
   "devDependencies": {
     "@types/node": "18.x",

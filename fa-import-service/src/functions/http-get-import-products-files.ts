@@ -27,7 +27,7 @@ function getSasToken(blobName: string): unknown {
     const startsOn = new Date();
     const expiresOn = new Date(startsOn.valueOf() + 10 * 60_000);
 
-    const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.BLOB_STORAGE_CONNECTION_STRING);
+    const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AzureWebJobsStorage);
     const containerClient = blobServiceClient.getContainerClient(BlobContainerName.UPLOADED);
     const blobBlockClient = containerClient.getBlockBlobClient(blobName);
     const { accountName, credential } = containerClient;
