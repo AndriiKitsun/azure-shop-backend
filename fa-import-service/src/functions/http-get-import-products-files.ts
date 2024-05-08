@@ -39,7 +39,7 @@ function getSasToken(blobName: string): unknown {
         startsOn,
         expiresOn
     };
-    const credentials = new StorageSharedKeyCredential(accountName, (credential as StorageSharedKeyCredential).accountName);
+    const credentials = new StorageSharedKeyCredential(accountName, (credential as any).accountKey);
     const token = generateBlobSASQueryParameters(sasSignature, credentials).toString();
 
     return `${blobBlockClient.url}?${token}`;

@@ -219,6 +219,18 @@ resource "azurerm_storage_share" "import_service_fa" {
   storage_account_name = azurerm_storage_account.import_service_fa.name
 }
 
+resource "azurerm_storage_container" "import_service_uploaded_container" {
+  name                  = "uploaded"
+  storage_account_name  = azurerm_storage_account.import_service_fa.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "import_service_parsed_container" {
+  name                  = "parsed"
+  storage_account_name  = azurerm_storage_account.import_service_fa.name
+  container_access_type = "private"
+}
+
 resource "azurerm_service_plan" "import_service_plan" {
   name     = "asp-import-service-sand-ne-001"
   location = "northeurope"
