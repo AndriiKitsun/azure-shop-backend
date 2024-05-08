@@ -4,12 +4,10 @@
   "description": "",
   "main": "dist/src/functions/*.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rimraf dist && tsc",
     "watch": "tsc -w",
-    "clean": "rimraf dist",
-    "prestart": "npm run clean && npm run build",
-    "start": "func start",
-    "test": "echo \"No tests yet...\""
+    "start": "npm run build && func start",
+    "deploy": "sh scripts/deploy.sh"
   },
   "dependencies": {
     "@azure/functions": "^4.0.0"
