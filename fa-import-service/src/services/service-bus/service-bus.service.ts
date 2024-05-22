@@ -17,18 +17,12 @@ export async function closeServiceBus(): Promise<void> {
 
     sender = null;
     serviceBusClient = null;
-
-    console.log(`sender -->`, sender);
-    console.log(`serviceBusClient -->`, serviceBusClient);
-    
 }
 
-export async function sendMessage(payload: Record<string, any>): Promise<void> {
+export function sendMessage(payload: Record<string, any>): Promise<void> {
     const message: ServiceBusMessage = {
         body: payload
     };
-
-    console.log(`message -->`, message);
 
     return sender.sendMessages(message);
 }
