@@ -2,22 +2,31 @@ import { InvocationContext, app, StorageBlobHandler } from "@azure/functions";
 import { BlobContainerName } from "../constants/container.constant";
 import { parse } from "csv-parse/sync";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { initServiceBus, sendMessage, closeServiceBus } from "../services/service-bus/service-bus.service";
 
 export async function importProductsFromFileHandler(blob: Buffer, context: InvocationContext): Promise<void> {
     const blobName = context.triggerMetadata.blobTrigger as string;
 
     context.log(`Storage blob function processed blob "${blobName}" with size ${blob.length} bytes`);
 
-    const data = parse(blob, {
+    const products = parse(blob, {
         columns: true,
         skipEmptyLines: true,
         trim: true,
         autoParse: true
     }) as any[];
 
-    data.forEach((product, i) => {
-        context.log(`Imported product item #${i + 1}: ${JSON.stringify(product)}`);
-    });
+    initServiceBus();
+
+    for (const product of products) {
+        try {
+            await sendMessage(product);
+        } catch (error) {
+            context.error("Error occurred during sending message to ServiceBus", error)
+        }
+    }
+
+    await closeServiceBus();
 
     await moveParsedFile(blob, blobName);
 }
