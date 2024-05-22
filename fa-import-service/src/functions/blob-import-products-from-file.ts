@@ -1,7 +1,7 @@
 import { InvocationContext, app, StorageBlobHandler } from "@azure/functions";
 import { BlobContainerName } from "../constants/container.constant";
-import { parse } from "csv-parse/sync";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { parse } from "csv-parse/sync";
 import { initServiceBus, sendMessage, closeServiceBus } from "../services/service-bus/service-bus.service";
 
 export async function importProductsFromFileHandler(blob: Buffer, context: InvocationContext): Promise<void> {
@@ -10,10 +10,12 @@ export async function importProductsFromFileHandler(blob: Buffer, context: Invoc
     context.log(`Storage blob function processed blob "${blobName}" with size ${blob.length} bytes`);
 
     const products = parse(blob, {
-        columns: true,
-        skipEmptyLines: true,
+        columns: (header: string[]) => {
+            return header.map(column => column.trim());
+        },
         trim: true,
-        autoParse: true
+        skipEmptyLines: true,
+        cast: true
     }) as any[];
 
     initServiceBus();
