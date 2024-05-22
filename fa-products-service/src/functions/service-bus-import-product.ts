@@ -15,11 +15,11 @@ export async function importProductHandler(message: unknown, context: Invocation
 
     const product = await createProduct(message as CreateProductDto);
 
-    context.info(`Product with id "${product.id}" has been created`);
+    context.log(`Product with id "${product.id}" has been created`);
 }
 
 app.serviceBusQueue('service-bus-import-product', {
-    connection: 'IMPORT_PRODUCT_SB_CONNECTION_STRING',
-    queueName: process.env.IMPORT_PRODUCT_SB_NAME,
+    connection: 'SERVICE_BUS_CONNECTION_STRING',
+    queueName: process.env.IMPORT_PRODUCT_QUEUE_NAME,
     handler: importProductHandler
 });
