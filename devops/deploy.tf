@@ -75,7 +75,7 @@ resource "azurerm_windows_function_app" "products_service" {
   site_config {
     always_on = false
 
-    application_insights_key               = azurerm_application_insights.products_service_fa.instrumentation_key
+    application_insights_key = azurerm_application_insights.products_service_fa.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.products_service_fa.connection_string
 
     # For production systems set this to false, but consumption plan supports only 32bit workers
@@ -151,10 +151,10 @@ resource "azurerm_cosmosdb_sql_database" "products_app" {
 
 
 resource "azurerm_cosmosdb_sql_container" "products" {
-  account_name        = azurerm_cosmosdb_account.test_app.name
-  database_name       = azurerm_cosmosdb_sql_database.products_app.name
-  name                = "products"
-  partition_key_path  = "/id"
+  account_name       = azurerm_cosmosdb_account.test_app.name
+  database_name      = azurerm_cosmosdb_sql_database.products_app.name
+  name               = "products"
+  partition_key_path = "/id"
   resource_group_name = azurerm_resource_group.product_service_rg.name
 
   # Cosmos DB supports TTL for the records
@@ -168,10 +168,10 @@ resource "azurerm_cosmosdb_sql_container" "products" {
 }
 
 resource "azurerm_cosmosdb_sql_container" "stocks" {
-  account_name        = azurerm_cosmosdb_account.test_app.name
-  database_name       = azurerm_cosmosdb_sql_database.products_app.name
-  name                = "stocks"
-  partition_key_path  = "/product_id"
+  account_name       = azurerm_cosmosdb_account.test_app.name
+  database_name      = azurerm_cosmosdb_sql_database.products_app.name
+  name               = "stocks"
+  partition_key_path = "/product_id"
   resource_group_name = azurerm_resource_group.product_service_rg.name
 
   # Cosmos DB supports TTL for the records
@@ -266,7 +266,7 @@ resource "azurerm_windows_function_app" "import_service" {
   site_config {
     always_on = false
 
-    application_insights_key               = azurerm_application_insights.import_service_fa.instrumentation_key
+    application_insights_key = azurerm_application_insights.import_service_fa.instrumentation_key
     application_insights_connection_string = azurerm_application_insights.import_service_fa.connection_string
 
     # For production systems set this to false, but consumption plan supports only 32bit workers
@@ -335,4 +335,118 @@ resource "azurerm_servicebus_queue" "products-import-queue" {
   duplicate_detection_history_time_window = "PT10M"
   requires_session                        = false
   dead_lettering_on_message_expiration    = false
+}
+
+// Docker App
+
+resource "azurerm_resource_group" "docker_rg" {
+  location = "northeurope"
+  name     = "rg-docker-app-sand-ne-001"
+}
+
+resource "azurerm_log_analytics_workspace" "docker_log_analytics_workspace" {
+  name                = "law-docker-app-log-analytics-ne-001"
+  location            = azurerm_resource_group.docker_rg.location
+  resource_group_name = azurerm_resource_group.docker_rg.name
+}
+
+resource "azurerm_container_registry" "docker_acr" {
+  name                = "acrdockerappne001"
+  resource_group_name = azurerm_resource_group.docker_rg.name
+  location            = azurerm_resource_group.docker_rg.location
+  sku                 = "Basic"
+  admin_enabled       = true
+}
+
+resource "azurerm_container_app_environment" "docker_cae" {
+  name                       = "cae-docker-app-ne-001"
+  location                   = azurerm_resource_group.docker_rg.location
+  resource_group_name        = azurerm_resource_group.docker_rg.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.docker_log_analytics_workspace.id
+}
+
+resource "azurerm_container_app" "docker_docker_hub" {
+  name                         = "ca-dh-docker-app-ne-001"
+  container_app_environment_id = azurerm_container_app_environment.docker_cae.id
+  resource_group_name          = azurerm_resource_group.docker_rg.name
+  revision_mode                = "Single"
+
+  registry {
+    server               = "docker.io"
+    username             = "marlokis"
+    password_secret_name = "docker-io-pass"
+  }
+
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = true
+    target_port                = 3000
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
+  }
+
+  template {
+    container {
+      name   = "docker-app"
+      image  = "marlokis/docker-app-repo:v4"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "CONTAINER_REGISTRY_NAME"
+        value = "Docker Hub"
+      }
+    }
+  }
+
+  secret {
+    name  = "docker-io-pass"
+    value = var.docker_hub_password
+  }
+}
+
+resource "azurerm_container_app" "docker_ca_docker_acr" {
+  name                         = "ca-acr-docker-app-ne-001"
+  container_app_environment_id = azurerm_container_app_environment.docker_cae.id
+  resource_group_name          = azurerm_resource_group.docker_rg.name
+  revision_mode                = "Single"
+
+  registry {
+    server               = azurerm_container_registry.docker_acr.login_server
+    username             = azurerm_container_registry.docker_acr.admin_username
+    password_secret_name = "acr-password"
+  }
+
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = true
+    target_port                = 3000
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
+  }
+
+  template {
+    container {
+      name   = "docker-app"
+      image  = "${azurerm_container_registry.docker_acr.login_server}/docker-app:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "CONTAINER_REGISTRY_NAME"
+        value = "Azure Container Registry"
+      }
+    }
+  }
+
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.docker_acr.admin_password
+  }
 }
