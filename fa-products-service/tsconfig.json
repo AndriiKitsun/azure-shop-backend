@@ -9,5 +9,9 @@
     "strict": true,
     "experimentalDecorators": true,
     "strictNullChecks": false
-  }
+  },
+  "exclude": [
+    "test",
+    "jest.config.ts"
+  ]
 }

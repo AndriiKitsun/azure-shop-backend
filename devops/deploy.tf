@@ -304,3 +304,35 @@ resource "azurerm_windows_function_app" "import_service" {
     ]
   }
 }
+
+// Service Bus
+
+resource "azurerm_resource_group" "landing_zone_rg" {
+  location = "northeurope"
+  name     = "rg-landing-zone-sand-ne-001"
+}
+
+resource "azurerm_servicebus_namespace" "integration_sb" {
+  name                          = "sb-integration-sand-neak-001"
+  location                      = azurerm_resource_group.landing_zone_rg.location
+  resource_group_name           = azurerm_resource_group.landing_zone_rg.name
+  sku                           = "Basic"
+  capacity                      = 0
+  public_network_access_enabled = true
+  minimum_tls_version           = "1.2"
+  zone_redundant                = false
+}
+
+resource "azurerm_servicebus_queue" "products-import-queue" {
+  name                                    = "sbq-products-import-sand-ne-001"
+  namespace_id                            = azurerm_servicebus_namespace.integration_sb.id
+  status                                  = "Active"
+  enable_partitioning                     = true
+  lock_duration                           = "PT1M"
+  max_size_in_megabytes                   = 1024
+  max_delivery_count                      = 10
+  requires_duplicate_detection            = false
+  duplicate_detection_history_time_window = "PT10M"
+  requires_session                        = false
+  dead_lettering_on_message_expiration    = false
+}
